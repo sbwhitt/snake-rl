@@ -7,21 +7,33 @@ from controls.keys import Keys
 from utils.point import Point
 from grid import Grid
 from snake import Snake
+from deep_learner import DeepLearner
 
 class Game:
-    def __init__(self) -> None:
-        self.running = True
-        self.paused = False
+    def __init__(self, use_learner=True, train=True) -> None:
+        self.grid_size = 5
+        self.grid = Grid(grid_size=self.grid_size)
+        self.snake = Snake(grid_size=self.grid_size)
+
+        self.use_learner = use_learner
+        if self.use_learner:
+            self.learner = DeepLearner(grid_size=self.grid_size)
+            if train:
+                self.learner.train()
+            self.learner.snake = self.snake
+
         self.keys = Keys()
         self.surface = pygame.display.set_mode(
             settings.WIN_SIZE,
             pygame.RESIZABLE | pygame.DOUBLEBUF)
-        self.clock = pygame.time.Clock()
 
-        grid_size = 9
-        self.grid = Grid(grid_size=grid_size)
-        self.snake = Snake(grid_size=grid_size)
+        self.clock = pygame.time.Clock()
         self.update_timer = 0
+        self.update_interval = 250
+
+        self.running = True
+        self.paused = True
+        self.new_game = False
 
     def on_init(self) -> None:
         pass
@@ -46,11 +58,6 @@ class Game:
             self.handle_key(event.key)
         elif event.type == pygame.KEYUP:
             self.keys.handle_up(event.key)
-        # elif event.type == pygame.MOUSEBUTTONDOWN:
-        #     self.mouse.handle_down(event.button)
-        #     self.handle_mouse_buttons()
-        # elif event.type == pygame.MOUSEBUTTONUP:
-        #     self.mouse.handle_up(event.button)
         elif event.type == pygame.WINDOWRESIZED:
             settings.WIN_SIZE = (event.x, event.y)
         else:
@@ -64,29 +71,38 @@ class Game:
             self.running = False
         elif key == pygame.K_SPACE:
             self.paused = not self.paused
-
-    # def handle_mouse_buttons(self) -> None:
-    #     # mouse buttons: 0 == left, 1 == middle, 2 == right
-    #     buttons = pygame.mouse.get_pressed()
-    #     pass
+        elif key == pygame.K_q:
+            self.new_game = True
+            self.paused = True
 
     def update(self, dt: int) -> None:
         self.update_timer += dt
 
-        if self.keys.is_down(inp_codes.KEY_W):
-            self.snake.move(Point(0, -1))
-        elif self.keys.is_down(inp_codes.KEY_S):
-            self.snake.move(Point(0, 1))
-        elif self.keys.is_down(inp_codes.KEY_A):
-            self.snake.move(Point(-1, 0))
-        elif self.keys.is_down(inp_codes.KEY_D):
-            self.snake.move(Point(1, 0))
+        if self.new_game:
+            self.snake = Snake(self.grid_size)
+            if self.use_learner:
+                self.learner.snake = self.snake
+            self.new_game = False
 
-        if self.update_timer >= 250:
+        if not self.use_learner:
+            if self.keys.is_down(inp_codes.KEY_W):
+                self.snake.move(Point(0, -1))
+            elif self.keys.is_down(inp_codes.KEY_S):
+                self.snake.move(Point(0, 1))
+            elif self.keys.is_down(inp_codes.KEY_A):
+                self.snake.move(Point(-1, 0))
+            elif self.keys.is_down(inp_codes.KEY_D):
+                self.snake.move(Point(1, 0))
+
+        if self.update_timer >= self.update_interval:
             self.update_timer = 0
+            alive = True
+            if self.use_learner:
+                self.learner.update(self.snake)
             alive = self.snake.update()
             if not alive:
-                self.running = False
+                self.paused = True
+                self.new_game = True
 
     def render(self) -> None:
         self.surface.fill(colors.BLACK)

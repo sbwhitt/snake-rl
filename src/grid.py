@@ -11,7 +11,7 @@ from utils.point import Point
 class Grid:
     def __init__(self, grid_size: int=10):
         self.grid_size = grid_size
-        if grid_size < 2:
+        if grid_size < 3:
             raise Exception("Bad grid size")
 
     def _init_bounds(self, win_size: tuple[int, int]):
