@@ -26,6 +26,12 @@ Set whether you want to use a model to play the game or not as well as whether o
 
 Using a $n \times n$ grid, the game world is flattened into a $1 \times n^2$ dimensional tensor then fed into the model each time the game updates. The model outputs a 4 dimensional tensor which represents the estimated utility values of the 4 possible actions: Up (0), Down (1), Left (2), Right (3).
 
-Model was trained using MSE loss and RMSProp optimizer. Loss was generated using: ${{argmax}_a}Q(s, a; \theta)$ as the predicted input and $R(s, a) + \gamma{{max}_{a'}}Q(s', a'; \theta)$ as the target (unless $s$ is a terminal state, then it just uses $R(s, a)$), where $Q(s, a; \theta)$ is the estimated utility Q function using model weights $\theta$, $R(s, a)$ is the reward function for taking action $a$ in state $s$, and $\gamma$ is the discount factor. When selecting states during training, model uses an $\epsilon$-greedy approach. 
+Model was trained using MSE loss and RMSProp optimizer. Loss was generated using:
+$\underset{a}{\arg \max} Q(s, a; \theta)$
+as the predicted input and:
+$R(s, a) + \gamma{\underset{a'}{\max}}Q(s', a'; \theta)$
+as the target (unless $s$ is a terminal state, then it just uses $R(s, a)$ ), where $Q(s, a; \theta)$ is the estimated utility Q function using model weights $\theta$, $R(s, a)$ is the reward function for taking action $a$ in state $s$, and $\gamma$ is the discount factor.
+
+When selecting states during training, model uses an $\epsilon$-greedy approach. 
 
 I primarily experimented with a 5x5 snake grid where the player's head spawns into the center tile with a single tail segment trailing behind them. However, any size grid above 3x3 could be used. 
