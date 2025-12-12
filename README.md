@@ -35,3 +35,7 @@ as the target (unless $s$ is a terminal state, then it just uses $R(s, a)$ ), wh
 When selecting states during training, model uses an $\epsilon$-greedy approach. 
 
 I primarily experimented with a 5x5 snake grid where the player's head spawns into the center tile with a single tail segment trailing behind them. However, any size grid above 3x3 could be used. 
+
+### Screenshot of 5x5 game board
+
+<img src="screenshots/example.png"/>
